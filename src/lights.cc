@@ -58,14 +58,14 @@ bool Lights::set(Light light, bool state)
 std::ostream &operator<<(std::ostream &os, const Lights &dt)
 {
 	auto pwmIt = dt.pwm.begin();
-	os << dt.state[0] ? "\x1B[0m" : "\x1B[31m";
-	os << *pwmIt;
+	os << (dt.state[0] ? "\x1B[32m" : "\x1B[31m");
+	os << unsigned(*pwmIt);
 	pwmIt++;
 	while (pwmIt < dt.pwm.end())
 	{
 		os << ", ";
-		os << dt.state[pwmIt - dt.pwm.begin()] ? "\x1B[0m" : "\x1B[31m";
-		os << *pwmIt;
+		os << (dt.state[pwmIt - dt.pwm.begin()] ? "\x1B[32m" : "\x1B[31m");
+		os << unsigned(*pwmIt);
 		pwmIt++;
 	}
 	return os << "\x1B[0m";
