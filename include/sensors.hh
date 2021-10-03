@@ -19,5 +19,6 @@ class Sensors
 public:
 	static void begin();
 	void handle();
+	bool operator!=(const Sensors &other);
 	friend std::ostream &operator<<(std::ostream &os, const Sensors &dt);
 };

@@ -41,6 +41,11 @@ float Sensors::readCurrent()
 	return vg1 / 1000 / 11 / 0.033333;
 }
 
+bool Sensors::operator!=(const Sensors &other)
+{
+	return std::abs(this->voltage - other.voltage) > 0.01 || std::abs(this->current - other.current) > 0.01;
+}
+
 std::ostream &operator<<(std::ostream &os, const Sensors &sensors)
 {
 	return os << std::setprecision(2) << sensors.voltage << "\t" << std::setprecision(3) << sensors.current;

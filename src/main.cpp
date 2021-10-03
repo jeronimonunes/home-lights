@@ -7,6 +7,7 @@
 #include <WiFi.h>
 #include <SPIFFS.h>
 #include "home-lights.hh"
+#include "action.hh"
 
 const char *ssid = "WIFI-SSID";
 const char *password = "WIFI-PASSWORD";
@@ -14,22 +15,55 @@ const char *password = "WIFI-PASSWORD";
 AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
 
+void sendState(AsyncWebSocketClient *client)
+{
+	UpdateLightsAction updateLightsAction = HomeLights.lights;
+	client->binary(reinterpret_cast<uint8_t *>(&updateLightsAction), sizeof(updateLightsAction));
+
+	UpdateSensorsAction updateSensorsAction = HomeLights.sensors;
+	client->binary(reinterpret_cast<uint8_t *>(&updateSensorsAction), sizeof(updateSensorsAction));
+
+	UpdateSwitchesAction updateSwitchesAction = HomeLights.switchState;
+	client->binary(reinterpret_cast<uint8_t *>(&updateSwitchesAction), sizeof(updateSwitchesAction));
+
+	std::cout << "New client: " << client->id() << std::endl;
+}
+
 void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
 {
 	AwsFrameInfo *info = (AwsFrameInfo *)arg;
-	if (info->final && info->index == 0 && info->len == len && info->opcode == WS_BINARY && len == sizeof(Lights))
+	if (info->final && info->index == 0 && info->len == len && info->opcode == WS_BINARY && len >= sizeof(Action))
 	{
-		auto lightState = reinterpret_cast<Lights *>(data);
-		HomeLights.update(*lightState);
+		auto action = reinterpret_cast<Action *>(data);
+		switch (action->type)
+		{
+		case ActionType::PING:
+			break;
+		case ActionType::UPDATE_LIGHTS:
+			break;
+		case ActionType::UPDATE_SENSORS:
+			break;
+		case ActionType::UPDATE_SWITCHS:
+			break;
+		case ActionType::UPDATE_LIGHT:
+			if (len != sizeof(UpdateLightAction))
+				break;
+			auto updateLightAction = reinterpret_cast<UpdateLightAction *>(data);
+			HomeLights.set(updateLightAction->light,
+						   updateLightAction->state,
+						   updateLightAction->pwm);
+			break;
+		}
 	}
 }
 
 void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type,
-			void *arg, uint8_t *data, size_t len)
+			 void *arg, uint8_t *data, size_t len)
 {
 	switch (type)
 	{
 	case WS_EVT_CONNECT:
+		sendState(client);
 		break;
 	case WS_EVT_DISCONNECT:
 		break;
@@ -70,7 +104,24 @@ void setup()
 
 	ArduinoOTA.begin();
 
-	// TODO HomeLights.onUpdate();
+	HomeLights.onLightUpdate = [](const Lights &lights)
+	{
+		UpdateLightsAction action = lights;
+		ws.binaryAll(reinterpret_cast<uint8_t *>(&action), sizeof(action));
+		std::cout << HomeLights << std::endl;
+	};
+	HomeLights.onSensorUpdate = [](const Sensors &sensors)
+	{
+		UpdateSensorsAction action = sensors;
+		ws.binaryAll(reinterpret_cast<uint8_t *>(&action), sizeof(action));
+		std::cout << HomeLights << std::endl;
+	};
+	HomeLights.onSwitchUpdate = [](const std::bitset<11> &switches)
+	{
+		UpdateSwitchesAction action = switches;
+		ws.binaryAll(reinterpret_cast<uint8_t *>(&action), sizeof(action));
+		std::cout << HomeLights << std::endl;
+	};
 }
 
 void loop()
@@ -78,12 +129,4 @@ void loop()
 	HomeLights.handle();
 	ws.cleanupClients();
 	ArduinoOTA.handle();
-
-	static auto lastTime = millis();
-	if ((millis() - lastTime) > 1000)
-	{
-		lastTime = millis();
-		ws.binaryAll(reinterpret_cast<uint8_t *>(&HomeLights), sizeof(HomeLights));
-		std::cout << HomeLights << std::endl;
-	}
 }

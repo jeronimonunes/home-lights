@@ -25,34 +25,34 @@ void Lights::begin()
 	}
 }
 
-Lights &Lights::operator=(const Lights &other)
+bool Lights::set(Light light, bool state, uint8_t pwm)
 {
-	if (this->state != other.state)
+	auto changed = false;
+	auto idx = static_cast<uint8_t>(light);
+	if (state && pwm == 0)
 	{
-		for (uint8_t i = 0; i < this->state.size(); i++)
-		{
-			auto state = other.state[i];
-			if (this->state[i] != state)
-			{
-				ledcWrite(i, state ? other.pwm[i] : 0);
-			}
-		}
-	};
-	this->state = other.state;
-	this->pwm = other.pwm;
-	return *this;
-}
-
-bool Lights::set(Light light, bool state)
-{
-	uint8_t idx = static_cast<uint8_t>(light);
-	auto oldState = this->state[idx];
-	if (oldState != state)
+		pwm = MAX_PWM_VALUE;
+	}
+	if (this->state[idx] != state)
 	{
 		this->state[idx] = state;
-		return true;
-	};
-	return false;
+		changed = true;
+	}
+	if (this->pwm[idx] != pwm)
+	{
+		this->pwm[idx] = pwm;
+		changed = true;
+	}
+	if (changed)
+	{
+		ledcWrite(idx, state ? pwm : 0);
+	}
+	return changed;
+}
+
+bool Lights::operator!=(const Lights &other)
+{
+	return this->state != other.state || this->pwm != other.pwm;
 }
 
 std::ostream &operator<<(std::ostream &os, const Lights &dt)

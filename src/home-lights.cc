@@ -15,23 +15,53 @@ void HomeLightsClass::begin()
 
 void HomeLightsClass::handle()
 {
-	sensors.handle();
+	static Sensors lastSensors;
+	static auto lastSensorTime = millis();
+	auto elapsed = millis() - lastSensorTime;
 
+	this->sensors.handle();
+	if (elapsed > 100 && this->sensors != lastSensors && this->onSensorUpdate)
+	{
+		lastSensorTime = millis();
+		lastSensors = this->sensors;
+		this->onSensorUpdate(lastSensors);
+	}
+
+	bool switchChanged = false;
 	for (uint8_t i = 0; i < SWITCH_PINS.size(); i++)
 	{
 		auto gpio = SWITCH_PINS[i];
-		this->switchState[i] = digitalRead(gpio);
+		bool newValue = digitalRead(gpio);
+		auto oldValue = this->switchState[i];
+		if (newValue != oldValue)
+		{
+			switchChanged = true;
+			oldValue = newValue;
+		}
 	}
+	if (switchChanged && this->onSwitchUpdate)
+	{
+		this->onSwitchUpdate(this->switchState);
+	}
+}
+
+void HomeLightsClass::set(Light light, bool state, uint8_t pwm)
+{
+	auto changed = this->lights.set(light, state, pwm);
+	if (changed && this->onLightUpdate)
+	{
+		this->onLightUpdate(this->lights);
+	}
+}
+
+bool HomeLightsClass::operator!=(const HomeLightsClass &other)
+{
+	return this->lights != other.lights || this->sensors != other.sensors || this->switchState != other.switchState;
 }
 
 std::ostream &operator<<(std::ostream &os, const HomeLightsClass &dt)
 {
 	return os << dt.sensors << "\t" << dt.lights << "\t" << dt.switchState;
-}
-
-void HomeLightsClass::update(const Lights &lights)
-{
-	this->lights = lights;
 }
 
 // SW at hardware schematics
