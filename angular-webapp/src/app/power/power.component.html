@@ -1,0 +1,4 @@
+<ng-container *ngIf="sensor$ | async as sensor">
+  {{sensor.voltage | number:'1.2-2'}}V
+  {{sensor.current | number:'1.2-2'}}A
+</ng-container>

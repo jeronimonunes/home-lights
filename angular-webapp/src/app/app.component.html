@@ -1,0 +1,8 @@
+<mat-toolbar color="primary">
+  <fa-icon [icon]="faLightbulb" style="margin-right: 0.5em;"></fa-icon>
+  <h6 style="flex-grow: 1;">HomeLights</h6>
+  <span>{{(connected$ | async) ? "CONECTADO" : "DESCONECTADO"}}</span>
+</mat-toolbar>
+<app-switches></app-switches>
+<app-house></app-house>
+<app-power></app-power>
