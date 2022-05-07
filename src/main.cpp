@@ -82,6 +82,11 @@ void WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info)
 	WiFi.begin(ssid, password);
 }
 
+void notFound(AsyncWebServerRequest *request)
+{
+	request->send(404, "text/plain", "Not found");
+}
+
 void setup()
 {
 	HomeLights.begin();
@@ -90,7 +95,7 @@ void setup()
 
 	WiFi.mode(WIFI_STA);
 	WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);
-	WiFi.onEvent(WiFiStationDisconnected, SYSTEM_EVENT_STA_DISCONNECTED);
+	WiFi.onEvent(WiFiStationDisconnected, ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
 	WiFi.begin(ssid, password);
 	WiFi.setHostname("home-lights");
 
@@ -98,8 +103,10 @@ void setup()
 
 	ws.onEvent(onEvent);
 	server.addHandler(&ws);
-	server.serveStatic("/", SPIFFS, "/");
+	server.serveStatic("/", SPIFFS, "/")
+		.setDefaultFile("index.html");
 
+	server.onNotFound(notFound);
 	server.begin();
 
 	ArduinoOTA.begin();

@@ -1,15 +1,15 @@
 import { Bitset } from "./bitset";
 
 export enum Light {
-	ONE,
-	TWO,
-	THREE,
-	FOUR,
-	FIVE,
-	SIX,
-	SEVEN,
-	EIGHT,
-	NINE
+	COPA,
+	CELSLI,
+	SALA,
+	JOICCE,
+	COZINHA,
+	MEIO,
+	JERONIMO,
+	VARANDA,
+	LAVANDERIA
 };
 
 export class Lights {

@@ -20,7 +20,7 @@ void HomeLightsClass::handle()
 	auto elapsed = millis() - lastSensorTime;
 
 	this->sensors.handle();
-	if (elapsed > 100 && this->sensors != lastSensors && this->onSensorUpdate)
+	if (elapsed > 500 && this->sensors != lastSensors && this->onSensorUpdate)
 	{
 		lastSensorTime = millis();
 		lastSensors = this->sensors;

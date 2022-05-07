@@ -48,5 +48,5 @@ bool Sensors::operator!=(const Sensors &other)
 
 std::ostream &operator<<(std::ostream &os, const Sensors &sensors)
 {
-	return os << std::setprecision(2) << sensors.voltage << "\t" << std::setprecision(3) << sensors.current;
+	return os << std::fixed << std::setprecision(2) << sensors.voltage << "\t" << std::setprecision(3) << sensors.current;
 }

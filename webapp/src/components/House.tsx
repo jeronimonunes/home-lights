@@ -2,14 +2,15 @@ import React from "react";
 import { Room } from "./Room";
 
 const rooms = [
-	"lavanderia",
-	"cozinha",
-	"joicce",
 	"copa",
-	"sala",
-	"jeronimo",
 	"celsli",
-	"varanda"
+	"sala",
+	"joicce",
+	"cozinha",
+	"meio",
+	"jeronimo",
+	"varanda",
+	"lavanderia",
 ]
 
 export class House extends React.Component {
